@@ -1,0 +1,549 @@
+<title>Aravali SMS</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: split login (ridge-line hero + form), then sidebar + content shell that collapses to a stacked menu on phones. */
+:root{
+  --bg:#f2f4f7; --surface:#ffffff; --surface2:#e8ecf3; --fg:#101828; --muted:#566377; --line:#d3d9e4;
+  --accent:#1f3a7a; --accent-fg:#ffffff; --accent-soft:#dfe6f6;
+  --good:#146346; --good-soft:#d9f0e5; --warn:#7d5200; --warn-soft:#fae9c4; --bad:#b0231a; --bad-soft:#fde3e0;
+  --hero:#13244d; --on-hero:#f2f5ff; --sun:#f0a92b;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0d121b; --surface:#151c28; --surface2:#202a3b; --fg:#e8edf6; --muted:#9aa6ba; --line:#2b3649;
+  --accent:#8fb0ff; --accent-fg:#0d1a3a; --accent-soft:#1f2d4d;
+  --good:#5fd3a0; --good-soft:#12342a; --warn:#f0b94d; --warn-soft:#3a2c0d; --bad:#ff8a7d; --bad-soft:#3d1a17;
+  --hero:#0b1530; --on-hero:#f2f5ff; --sun:#f0a92b; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0d121b; --surface:#151c28; --surface2:#202a3b; --fg:#e8edf6; --muted:#9aa6ba; --line:#2b3649;
+  --accent:#8fb0ff; --accent-fg:#0d1a3a; --accent-soft:#1f2d4d;
+  --good:#5fd3a0; --good-soft:#12342a; --warn:#f0b94d; --warn-soft:#3a2c0d; --bad:#ff8a7d; --bad-soft:#3d1a17;
+  --hero:#0b1530; --on-hero:#f2f5ff; --sun:#f0a92b; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 14px/1.5 var(--f-body);
+  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;line-height:1.15}
+h1{font-size:28px;font-weight:700} h2{font-size:19px;font-weight:700} h3{font-size:15px;font-weight:700}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+
+/* buttons & fields */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:500}
+.btn:hover{background:var(--surface2)}
+.btn.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn.danger{color:var(--bad);border-color:var(--bad)}
+.btn.sm{min-height:32px;padding:0 10px;font-size:13px}
+.btn.link{border:0;background:none;color:var(--accent);padding:0 4px;min-height:32px;text-decoration:underline}
+label.f{display:grid;gap:6px;font-size:12px;font-weight:600;color:var(--muted);min-width:0}
+.in{width:100%;min-height:40px;padding:0 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg)}
+.in:disabled{opacity:.6}
+select.in{padding-right:8px}
+
+/* login */
+.login{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:0;align-items:stretch;max-width:1180px;margin:0 auto;padding-block:24px}
+.hero{background:var(--hero);color:var(--on-hero);border-radius:16px 0 0 16px;padding:40px;display:flex;flex-direction:column;justify-content:space-between;gap:24px;position:relative;overflow:hidden;min-height:520px}
+.hero h1{font-size:38px;max-width:14ch;color:var(--on-hero)}
+.hero .eyebrow{color:var(--on-hero);opacity:.75}
+.hero p{max-width:40ch;opacity:.85}
+.ridge{position:absolute;left:0;right:0;bottom:0;width:100%;height:46%;color:var(--on-hero);pointer-events:none}
+.hero .top,.hero .bot{position:relative;z-index:1;display:grid;gap:14px}
+.crest{width:44px;height:44px;border-radius:10px;background:var(--on-hero);color:var(--hero);display:grid;place-items:center;font:700 15px var(--f-display);letter-spacing:.02em}
+.logincard{background:var(--surface);border:1px solid var(--line);border-left:0;border-radius:0 16px 16px 0;padding:40px;display:flex;flex-direction:column;justify-content:center;gap:20px}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface2);padding:4px;border-radius:10px;gap:4px}
+.seg button{border:0;background:none;min-height:36px;border-radius:7px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgb(0 0 0/.15)}
+.form{display:grid;gap:14px}
+.err{color:var(--bad);font-size:13px;min-height:18px}
+.demo{display:grid;gap:8px;border:1px dashed var(--line);border-radius:10px;padding:12px}
+.demo .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+@media (max-width:860px){
+  .login{grid-template-columns:minmax(0,1fr);padding-block:12px}
+  .hero{border-radius:16px 16px 0 0;min-height:300px;padding:24px}
+  .hero h1{font-size:28px}
+  .logincard{border-left:1px solid var(--line);border-top:0;border-radius:0 0 16px 16px;padding:24px}
+}
+
+/* shell */
+.shell{display:grid;grid-template-columns:236px minmax(0,1fr);gap:24px;align-items:start;max-width:1240px;margin:0 auto;padding-block:16px}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 16px);background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:14px}
+.sidehead{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.brand{display:flex;gap:10px;align-items:center;min-width:0}
+.brand b{font:700 14px/1.2 var(--f-display)}
+.brand .crest{width:36px;height:36px;font-size:13px;flex:none;background:var(--hero);color:var(--on-hero)}
+.menubtn{display:none}
+.nav{display:grid;gap:4px}
+.nav button{display:flex;align-items:center;gap:10px;text-align:left;border:0;background:none;min-height:40px;padding:0 12px;border-radius:8px;cursor:pointer;color:var(--muted);font-weight:500}
+.nav button:hover{background:var(--surface2)}
+.nav button[aria-current="page"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.me{border-top:1px solid var(--line);padding-top:12px;display:grid;gap:8px}
+.me b{display:block;overflow-wrap:anywhere}
+@media (max-width:860px){
+  .shell{grid-template-columns:minmax(0,1fr);gap:16px}
+  .side{position:static}
+  .menubtn{display:inline-flex}
+  .side.closed .navwrap{display:none}
+}
+main.content{min-width:0;display:grid;gap:20px}
+.pagehead{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.pagehead p{color:var(--muted);margin-top:4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;min-width:0}
+.grid{display:grid;gap:16px}
+.g-sel{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.g-cards{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.split{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:1000px){.split{grid-template-columns:minmax(0,1fr)}}
+.cardhead{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;min-width:420px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--surface2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.num,th.num{text-align:right}
+
+/* attendance */
+.stat{min-width:104px;min-height:34px;border-radius:8px;border:1px solid var(--bad);background:var(--bad-soft);color:var(--bad);cursor:pointer;font-weight:600}
+.stat.on{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.count{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.bar{height:8px;background:var(--surface2);border-radius:99px;position:relative;overflow:visible;flex:1;min-width:120px}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--c,var(--good));width:calc(var(--p)*1%)}
+.bar::after{content:"";position:absolute;left:75%;top:-3px;bottom:-3px;width:2px;background:var(--fg);opacity:.45;border-radius:2px}
+.pill{display:inline-block;min-width:48px;text-align:center;padding:2px 8px;border-radius:99px;font:500 12px var(--f-mono);background:var(--surface2);color:var(--muted)}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.tag{display:inline-block;font:500 11px var(--f-mono);padding:2px 6px;border-radius:5px;background:var(--accent-soft);color:var(--accent)}
+.ring{--s:92px;--c:var(--good);width:var(--s);aspect-ratio:1;border-radius:50%;flex:none;background:conic-gradient(var(--c) calc(var(--p)*1%),var(--surface2) 0);display:grid;place-items:center;position:relative}
+.ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--surface)}
+.ring span{position:relative;font:500 17px var(--f-mono)}
+.ring.good{--c:var(--good)} .ring.warn{--c:var(--warn)} .ring.bad{--c:var(--bad)}
+.ring.big{--s:132px} .ring.big span{font-size:26px}
+.bar.good{--c:var(--good)} .bar.warn{--c:var(--warn)} .bar.bad{--c:var(--bad)}
+.subcard{display:grid;gap:12px}
+.subcard .row{display:flex;gap:14px;align-items:center}
+.alert{display:flex;gap:12px;align-items:flex-start;background:var(--warn-soft);color:var(--warn);border:1px solid var(--warn);border-radius:12px;padding:12px 14px}
+.alert.ok{background:var(--good-soft);color:var(--good);border-color:var(--good)}
+.alert b{display:block}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{min-height:32px;padding:0 12px;border-radius:99px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:500;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.timeline{list-style:none;margin:0;padding:0;display:grid;gap:0;position:relative}
+.timeline li{display:grid;grid-template-columns:14px minmax(0,1fr);gap:12px;padding-bottom:16px;position:relative}
+.timeline li::before{content:"";position:absolute;left:6px;top:14px;bottom:0;width:2px;background:var(--line)}
+.timeline li:last-child::before{display:none}
+.timeline .dot{width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid var(--surface);box-shadow:0 0 0 1px var(--accent);margin-top:3px}
+.timeline .dot.absent{background:var(--bad);box-shadow:0 0 0 1px var(--bad)}
+.timeline .dot.present{background:var(--good);box-shadow:0 0 0 1px var(--good)}
+.tl-body{min-width:0;display:grid;gap:2px}
+.tl-body .line{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.tl-open{border:0;background:none;text-align:left;cursor:pointer;padding:0;display:block;width:100%}
+.tl-open:hover b{text-decoration:underline}
+.nameinput{min-width:150px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.notice{font-size:12px;color:var(--muted)}
+.lock{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
+
+/* guest */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stats .card b{display:block;font:500 26px var(--f-mono)}
+.deps{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.deps .card{display:grid;gap:6px}
+
+#toast{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;padding:16px max(16px,env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));pointer-events:none;z-index:20}
+#toast div{background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:500;max-width:100%;box-shadow:0 8px 24px rgb(0 0 0/.25)}
+@media (prefers-reduced-motion:no-preference){.btn,.stat,.chip{transition:background .15s,filter .15s}}
+</style>
+
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+"use strict";
+var KEY="aravali_sms_v1";
+var SUBJECTS=[
+  {code:"DSA",name:"Data Structures & Algorithms"},
+  {code:"ETC",name:"ETC"},
+  {code:"DE",name:"Digital Electronics"},
+  {code:"AEC",name:"AEC"},
+  {code:"M3",name:"Mathematics III"}
+];
+var SLOTS=["09:00 – 09:50","10:00 – 10:50","11:10 – 12:00","12:10 – 13:00","14:00 – 14:50","15:00 – 15:50"];
+
+function pad(n){return String(n).padStart(2,"0");}
+function iso(d){return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());}
+function fmt(s){return new Date(s+"T12:00:00").toLocaleDateString("en-IN",{weekday:"short",day:"numeric",month:"short"});}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+
+/* ---------- data ---------- */
+function seed(){
+  var students=[
+    {id:"S101",roll:"24CSE001",name:"Aarav Sharma",pass:"student123"},
+    {id:"S102",roll:"24CSE002",name:"Diya Yadav",pass:"student123"},
+    {id:"S103",roll:"24CSE003",name:"Kabir Singh",pass:"student123"},
+    {id:"S104",roll:"24CSE004",name:"Meera Chauhan",pass:"student123"},
+    {id:"S105",roll:"24CSE005",name:"Rohan Gupta",pass:"student123"},
+    {id:"S106",roll:"24CSE006",name:"Sneha Verma",pass:"student123"},
+    {id:"S107",roll:"24CSE007",name:"Arjun Tanwar",pass:"student123"},
+    {id:"S108",roll:"24CSE008",name:"Ishita Malik",pass:"student123"}
+  ];
+  var teachers=[
+    {id:"T01",name:"Dr. Neha Kapoor",pass:"teacher123",subjects:["DSA","DE"]},
+    {id:"T02",name:"Prof. Rajiv Malhotra",pass:"teacher123",subjects:["ETC","AEC"]},
+    {id:"T03",name:"Dr. Sunita Rao",pass:"teacher123",subjects:["M3"]}
+  ];
+  var dates=[],d=new Date();d.setHours(12);
+  while(dates.length<10){d.setDate(d.getDate()-1);var w=d.getDay();if(w!==0&&w!==6)dates.unshift(iso(d));}
+  var x=11;function rnd(){x=(x*1664525+1013904223)%4294967296;return x/4294967296;}
+  var prob=[.96,.9,.62,.85,.7,.97,.5,.8];
+  var records={};
+  SUBJECTS.forEach(function(s,si){
+    var t=teachers.filter(function(t){return t.subjects.indexOf(s.code)>-1;})[0];
+    records[s.code]=dates.map(function(dt,k){
+      var marks={};students.forEach(function(st,i){marks[st.id]=rnd()<prob[i];});
+      return {lecture:k+1,date:dt,slot:si%SLOTS.length,teacher:t.name,teacherId:t.id,
+        ts:new Date(dt+"T"+SLOTS[si%SLOTS.length].slice(0,5)+":00").toISOString(),marks:marks};
+    });
+  });
+  return {students:students,teachers:teachers,records:records};
+}
+function load(){try{var r=localStorage.getItem(KEY);if(r){var j=JSON.parse(r);if(j&&j.students&&j.records)return j;}}catch(e){}return seed();}
+var DB=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
+
+function stat(sid,code){
+  var rs=DB.records[code]||[],p=0;
+  rs.forEach(function(r){if(r.marks[sid])p++;});
+  return {held:rs.length,present:p,pct:rs.length?Math.round(p/rs.length*100):null};
+}
+function overall(sid){
+  var h=0,p=0;
+  SUBJECTS.forEach(function(s){var a=stat(sid,s.code);h+=a.held;p+=a.present;});
+  return {held:h,present:p,pct:h?Math.round(p/h*100):null};
+}
+function lvl(p){return p==null?"na":p>=75?"good":p>=60?"warn":"bad";}
+function pill(p){return '<span class="pill '+lvl(p)+'">'+(p==null?"–":p+"%")+'</span>';}
+function ring(p,big){return '<div class="ring '+lvl(p)+(big?" big":"")+'" style="--p:'+(p||0)+'" role="img" aria-label="'+(p==null?"No lectures yet":p+" percent attendance")+'"><span>'+(p==null?"–":p+"%")+'</span></div>';}
+function subj(code){return SUBJECTS.filter(function(s){return s.code===code;})[0];}
+
+/* ---------- state ---------- */
+var S={user:null,view:"",menuOpen:false,role:"student",err:"",filter:"ALL",
+  sel:{subject:null,lecture:null,draftKey:"",draft:null},confirm:null};
+
+function toast(m){var t=document.getElementById("toast");t.innerHTML="<div>"+esc(m)+"</div>";clearTimeout(toast.h);toast.h=setTimeout(function(){t.innerHTML="";},3200);}
+
+/* ---------- icons ---------- */
+var ICON={
+  check:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+  table:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 4v16"/></svg>',
+  users:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.8a3.5 3.5 0 0 1 0 6.4M18 14.8c2 .6 3.2 2.3 3.5 5.2"/></svg>',
+  user:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 4-6 8-6s7.2 2 8 6"/></svg>',
+  building:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21V5l8-3 8 3v16M9 21v-5h6v5M8 9h2M14 9h2M8 13h2M14 13h2"/></svg>',
+  menu:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>',
+  warn:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 20h20L12 3zM12 10v4M12 17.5v.1"/></svg>',
+  lock:'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>'
+};
+
+/* ---------- login ---------- */
+function viewLogin(){
+  var isS=S.role==="student";
+  return '<div class="login">'+
+  '<section class="hero" aria-label="Aravali College of Engineering and Management">'+
+    '<div class="top"><div class="crest" aria-hidden="true">ACEM</div>'+
+    '<span class="eyebrow">Smart Student Management System</span>'+
+    '<h1>Aravali College of Engineering and Management</h1></div>'+
+    '<div class="bot"><p>Lecture-by-lecture attendance for every subject. Teachers mark and correct it. Students see where they stand against the 75% line.</p></div>'+
+    '<svg class="ridge" viewBox="0 0 600 200" preserveAspectRatio="none" aria-hidden="true">'+
+      '<circle cx="470" cy="70" r="26" fill="var(--sun)"/>'+
+      '<path d="M0 120 70 80 130 108 210 52 290 110 360 74 450 126 540 86 600 112V200H0Z" fill="currentColor" opacity=".12"/>'+
+      '<path d="M0 150 60 118 140 146 230 96 320 146 400 112 490 152 560 126 600 140V200H0Z" fill="currentColor" opacity=".2"/>'+
+      '<path d="M0 182 80 156 170 178 260 144 350 180 440 160 520 182 600 166V200H0Z" fill="currentColor" opacity=".32"/>'+
+    '</svg>'+
+  '</section>'+
+  '<section class="logincard"><div><h2>Sign in</h2><p class="muted">Choose your role, then enter your ID and password.</p></div>'+
+    '<div class="seg" role="group" aria-label="Role">'+
+      '<button type="button" data-a="role" data-v="student" aria-pressed="'+isS+'">Student</button>'+
+      '<button type="button" data-a="role" data-v="teacher" aria-pressed="'+(!isS)+'">Teacher</button></div>'+
+    '<form class="form" id="loginform" autocomplete="off">'+
+      '<label class="f" for="uid">'+(isS?"Student ID":"Teacher ID")+'<input class="in" id="uid" name="uid" placeholder="'+(isS?"S101":"T01")+'" autocapitalize="characters" required></label>'+
+      '<label class="f" for="pw">Password<input class="in" id="pw" name="pw" type="password" required></label>'+
+      '<div class="err" role="alert">'+esc(S.err)+'</div>'+
+      '<button class="btn primary" type="submit">Sign in</button>'+
+    '</form>'+
+    '<div class="demo"><span class="eyebrow">Demo accounts</span>'+
+      '<div class="row"><span class="mono">'+(isS?"S101 / student123":"T01 / teacher123")+'</span><button class="btn sm" type="button" data-a="fill">Fill in</button></div>'+
+    '</div>'+
+    '<button class="btn link" type="button" data-a="guest">Visit the public portal as a guest</button>'+
+  '</section></div>';
+}
+
+/* ---------- shell ---------- */
+function navFor(role){
+  if(role==="teacher")return [["mark","Mark attendance",ICON.check],["summary","Class summary",ICON.table],["students","Students",ICON.users]];
+  if(role==="student")return [["me","My attendance",ICON.user]];
+  return [["portal","College portal",ICON.building]];
+}
+function currentUser(){
+  if(!S.user)return null;
+  if(S.user.role==="teacher")return DB.teachers.filter(function(t){return t.id===S.user.id;})[0];
+  if(S.user.role==="student")return DB.students.filter(function(t){return t.id===S.user.id;})[0];
+  return {name:"Guest visitor",id:"guest"};
+}
+function viewShell(){
+  var u=currentUser(),role=S.user.role,nav=navFor(role);
+  var body=S.view==="mark"?viewMark():S.view==="summary"?viewSummary():S.view==="students"?viewStudents():S.view==="me"?viewMe():viewGuest();
+  var roleLabel=role==="teacher"?"Teacher":role==="student"?"Student":"Guest";
+  return '<div class="shell"><aside class="side'+(S.menuOpen?"":" closed")+'">'+
+    '<div class="sidehead"><div class="brand"><div class="crest" aria-hidden="true">ACEM</div><b>Aravali College of Engineering and Management</b></div>'+
+    '<button class="btn sm menubtn" type="button" data-a="menu" aria-expanded="'+S.menuOpen+'" aria-label="Menu">'+ICON.menu+'</button></div>'+
+    '<div class="navwrap" style="display:grid;gap:14px"><nav class="nav" aria-label="Sections">'+
+      nav.map(function(n){return '<button type="button" data-a="nav" data-v="'+n[0]+'"'+(S.view===n[0]?' aria-current="page"':'')+'>'+n[2]+n[1]+'</button>';}).join("")+
+    '</nav><div class="me"><div><span class="eyebrow">'+roleLabel+'</span><b>'+esc(u.name)+'</b>'+(role==="student"?'<span class="mono muted">'+esc(u.roll)+'</span>':'')+'</div>'+
+    '<button class="btn sm" type="button" data-a="signout">'+(role==="guest"?"Back to sign in":"Sign out")+'</button></div></div>'+
+  '</aside><main class="content">'+body+'</main></div>';
+}
+
+/* ---------- teacher: mark attendance ---------- */
+function teacherSubjects(){var t=currentUser();return SUBJECTS.filter(function(s){return t.subjects.indexOf(s.code)>-1;});}
+function initDraft(){
+  var subs=teacherSubjects();
+  if(!S.sel.subject||!subs.some(function(s){return s.code===S.sel.subject;}))S.sel.subject=subs[0].code;
+  var recs=DB.records[S.sel.subject]||[],next=recs.length+1;
+  if(S.sel.lecture==null||S.sel.lecture>next)S.sel.lecture=next;
+  var key=S.sel.subject+":"+S.sel.lecture+":"+DB.students.length;
+  if(S.sel.draftKey!==key||!S.sel.draft){
+    var ex=recs.filter(function(r){return r.lecture===S.sel.lecture;})[0];
+    var marks={};
+    DB.students.forEach(function(st){marks[st.id]=ex?!!ex.marks[st.id]:false;});
+    S.sel.draft={marks:marks,date:ex?ex.date:iso(new Date()),slot:ex?ex.slot:Math.min(SLOTS.length-1,recs.length?recs[recs.length-1].slot:0),existing:!!ex};
+    S.sel.draftKey=key;
+  }
+}
+function viewMark(){
+  initDraft();
+  var subs=teacherSubjects(),code=S.sel.subject,recs=DB.records[code]||[],next=recs.length+1,dr=S.sel.draft,n=S.sel.lecture;
+  var present=DB.students.filter(function(s){return dr.marks[s.id];}).length,total=DB.students.length;
+  var pct=total?Math.round(present/total*100):0;
+  var lopts="";
+  for(var i=1;i<=next;i++){
+    var r=recs.filter(function(x){return x.lecture===i;})[0];
+    lopts+='<option value="'+i+'"'+(i===n?" selected":"")+'>Lecture '+i+(r?" · "+fmt(r.date):" (new)")+'</option>';
+  }
+  var rows=DB.students.map(function(s,i){
+    var on=dr.marks[s.id];
+    return '<tr><td class="mono muted">'+(i+1)+'</td><td class="mono">'+esc(s.roll)+'</td><td>'+esc(s.name)+'</td><td class="num">'+
+      '<button type="button" class="stat'+(on?" on":"")+'" data-a="toggle" data-id="'+s.id+'" aria-pressed="'+on+'" aria-label="'+esc(s.name)+': '+(on?"Present":"Absent")+'">'+(on?"Present":"Absent")+'</button></td></tr>';
+  }).join("");
+  var feed=recs.slice().reverse().map(function(r){
+    var p=DB.students.filter(function(s){return r.marks[s.id];}).length;
+    return '<li><span class="dot"></span><div class="tl-body"><button type="button" class="tl-open" data-a="open" data-n="'+r.lecture+'">'+
+      '<div class="line"><b>Lecture '+r.lecture+'</b><span class="tag">'+code+'</span><span class="mono muted">'+p+'/'+DB.students.length+' present</span></div>'+
+      '<span class="muted">'+fmt(r.date)+' · '+SLOTS[r.slot]+'</span><br><span class="muted">Taken by '+esc(r.teacher)+'</span></button></div></li>';
+  }).join("");
+  var canDelete=dr.existing&&n===recs.length;
+  var delBtn="";
+  if(canDelete){
+    delBtn=S.confirm==="dellec"?'<button class="btn sm danger" type="button" data-a="delok">Yes, delete Lecture '+n+'</button><button class="btn sm" type="button" data-a="delno">Cancel</button>'
+      :'<button class="btn sm danger" type="button" data-a="delask">Delete this lecture</button>';
+  }
+  return '<div class="pagehead"><div><h1>Mark attendance</h1><p>Pick the subject and lecture, mark each student, then save.</p></div>'+
+    '<span class="lock">'+ICON.lock+'Only teachers can change attendance</span></div>'+
+  '<div class="card"><div class="grid g-sel">'+
+    '<label class="f" for="f-subject">Subject<select class="in" id="f-subject" data-f="subject">'+subs.map(function(s){return '<option value="'+s.code+'"'+(s.code===code?" selected":"")+'>'+s.code+' · '+esc(s.name)+'</option>';}).join("")+'</select></label>'+
+    '<label class="f" for="f-lecture">Lecture<select class="in" id="f-lecture" data-f="lecture">'+lopts+'</select></label>'+
+    '<label class="f" for="f-date">Date<input class="in" id="f-date" type="date" data-f="date" value="'+dr.date+'"></label>'+
+    '<label class="f" for="f-slot">Time slot<select class="in" id="f-slot" data-f="slot">'+SLOTS.map(function(s,i){return '<option value="'+i+'"'+(i===dr.slot?" selected":"")+'>'+s+'</option>';}).join("")+'</select></label>'+
+  '</div></div>'+
+  '<div class="split"><div class="card"><div class="cardhead"><div><h2>Class roster</h2><span class="muted">'+code+' · Lecture '+n+(dr.existing?" · editing saved record":" · new lecture")+'</span></div>'+
+    '<div class="actions"><button class="btn sm" type="button" data-a="allp">Select all present</button><button class="btn sm" type="button" data-a="allabs">Clear all</button></div></div>'+
+    '<div class="count" style="margin-bottom:14px"><b class="mono">'+present+' / '+total+' present</b><div class="bar '+lvl(pct)+'" style="--p:'+pct+'"><i></i></div><span class="mono muted">'+pct+'%</span></div>'+
+    '<div class="tablewrap"><table><thead><tr><th>#</th><th>Roll no.</th><th>Student</th><th class="num">Status</th></tr></thead><tbody>'+(rows||'<tr><td colspan="4" class="muted">No students yet. Add them in the Students section.</td></tr>')+'</tbody></table></div>'+
+    '<div class="actions" style="margin-top:14px;justify-content:space-between"><div class="actions">'+delBtn+'</div><button class="btn primary" type="button" data-a="save"'+(total?"":" disabled")+'>'+(dr.existing?"Update Lecture "+n:"Save Lecture "+n)+'</button></div></div>'+
+  '<div class="card"><div class="cardhead"><h2>Lectures held</h2><span class="mono muted">'+recs.length+' so far</span></div>'+
+    (feed?'<ul class="timeline">'+feed+'</ul>':'<p class="muted">No lectures saved for '+code+' yet.</p>')+'</div></div>';
+}
+
+/* ---------- teacher: summary ---------- */
+function viewSummary(){
+  var head=SUBJECTS.map(function(s){return '<th class="num" title="'+esc(s.name)+'">'+s.code+'</th>';}).join("");
+  var rows=DB.students.map(function(st){
+    var o=overall(st.id);
+    return '<tr><td><b>'+esc(st.name)+'</b><br><span class="mono muted">'+esc(st.roll)+'</span></td>'+
+      SUBJECTS.map(function(s){return '<td class="num">'+pill(stat(st.id,s.code).pct)+'</td>';}).join("")+
+      '<td class="num">'+pill(o.pct)+'</td></tr>';
+  }).join("");
+  var cards=SUBJECTS.map(function(s){
+    var recs=DB.records[s.code]||[],avg=null;
+    if(recs.length&&DB.students.length){var tot=0;DB.students.forEach(function(st){tot+=stat(st.id,s.code).present;});avg=Math.round(tot/(recs.length*DB.students.length)*100);}
+    return '<div class="card subcard"><div><span class="tag">'+s.code+'</span> <b>'+esc(s.name)+'</b></div><div class="count"><span class="mono" style="font-size:22px">'+(avg==null?"–":avg+"%")+'</span><div class="bar '+lvl(avg)+'" style="--p:'+(avg||0)+'"><i></i></div></div><span class="muted mono">'+recs.length+' lectures · class average</span></div>';
+  }).join("");
+  var low=DB.students.filter(function(st){var o=overall(st.id);return o.pct!=null&&o.pct<75;}).length;
+  return '<div class="pagehead"><div><h1>Class summary</h1><p>Attendance by subject. The marker on each bar is the 75% requirement.</p></div></div>'+
+    '<div class="grid g-cards">'+cards+'</div>'+
+    '<div class="card"><div class="cardhead"><h2>Student-wise attendance</h2><span class="mono muted">'+low+' below 75% overall</span></div>'+
+    '<div class="tablewrap"><table style="min-width:560px"><thead><tr><th>Student</th>'+head+'<th class="num">Overall</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ---------- teacher: students ---------- */
+function viewStudents(){
+  var rows=DB.students.map(function(s){
+    var ask=S.confirm==="rm:"+s.id;
+    return '<tr><td class="mono muted">'+esc(s.id)+'</td>'+
+      '<td><input class="in nameinput" data-f="sname" data-id="'+s.id+'" value="'+esc(s.name)+'" aria-label="Name of '+esc(s.name)+'"></td>'+
+      '<td><input class="in mono" style="min-width:110px" data-f="sroll" data-id="'+s.id+'" value="'+esc(s.roll)+'" aria-label="Roll number of '+esc(s.name)+'"></td>'+
+      '<td class="num">'+(ask?'<button class="btn sm danger" type="button" data-a="rmok" data-id="'+s.id+'">Confirm remove</button> <button class="btn sm" type="button" data-a="rmno">Cancel</button>'
+        :'<button class="btn sm" type="button" data-a="rmask" data-id="'+s.id+'">Remove</button>')+'</td></tr>';
+  }).join("");
+  return '<div class="pagehead"><div><h1>Students</h1><p>Edit a name or roll number and the change saves when you leave the field.</p></div>'+
+    '<span class="lock">'+ICON.lock+'Only teachers can edit students</span></div>'+
+  '<div class="card"><h2 style="margin-bottom:12px">Add a student</h2>'+
+    '<form class="grid g-sel" id="addform" autocomplete="off" style="align-items:end">'+
+      '<label class="f" for="a-name">Full name<input class="in" id="a-name" required></label>'+
+      '<label class="f" for="a-roll">Roll number<input class="in" id="a-roll" required placeholder="24CSE009"></label>'+
+      '<button class="btn primary" type="submit">Add student</button></form>'+
+    '<p class="notice" style="margin-top:10px">New students get the sign-in password student123.</p></div>'+
+  '<div class="card"><div class="cardhead"><h2>Roster</h2><span class="mono muted">'+DB.students.length+' students</span></div>'+
+    '<div class="tablewrap"><table style="min-width:600px"><thead><tr><th>Login ID</th><th>Name</th><th>Roll no.</th><th class="num">Action</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+}
+
+/* ---------- student ---------- */
+function viewMe(){
+  var st=currentUser(),o=overall(st.id);
+  var per=SUBJECTS.map(function(s){var a=stat(st.id,s.code);a.s=s;return a;});
+  var low=per.filter(function(a){return a.pct!=null&&a.pct<75;});
+  var alertHtml=low.length?
+    '<div class="alert" role="alert">'+ICON.warn+'<div><b>Attendance below 75% in '+low.length+(low.length>1?" subjects":" subject")+'</b>'+low.map(function(a){return a.s.code+" ("+a.pct+"%)";}).join(", ")+'. Check the cards below for what it takes to recover.</div></div>':
+    '<div class="alert ok">'+ICON.check+'<div><b>You are above 75% in every subject</b>Keep it up.</div></div>';
+  var cards=per.map(function(a){
+    var need=Math.max(0,3*a.held-4*a.present);
+    return '<div class="card subcard"><div><span class="tag">'+a.s.code+'</span> <b>'+esc(a.s.name)+'</b></div>'+
+      '<div class="row">'+ring(a.pct)+'<div><b class="mono">'+a.present+' / '+a.held+'</b><br><span class="muted">lectures attended</span></div></div>'+
+      '<div class="bar '+lvl(a.pct)+'" style="--p:'+(a.pct||0)+'"><i></i></div>'+
+      (a.pct!=null&&a.pct<75?'<span class="notice" style="color:var(--warn)">Attend the next '+need+' lecture'+(need===1?"":"s")+' in a row to reach 75%.</span>':'<span class="notice">'+(a.held?"On track.":"No lectures yet.")+'</span>')+'</div>';
+  }).join("");
+  var log=[];
+  SUBJECTS.forEach(function(s){(DB.records[s.code]||[]).forEach(function(r){log.push({code:s.code,r:r});});});
+  log.sort(function(a,b){return a.r.ts<b.r.ts?1:-1;});
+  if(S.filter!=="ALL")log=log.filter(function(x){return x.code===S.filter;});
+  var items=log.slice(0,24).map(function(x){
+    var p=!!x.r.marks[st.id];
+    return '<li><span class="dot '+(p?"present":"absent")+'"></span><div class="tl-body"><div class="line"><b>'+x.code+' · Lecture '+x.r.lecture+'</b><span class="pill '+(p?"good":"bad")+'">'+(p?"Present":"Absent")+'</span></div>'+
+      '<span class="muted">'+fmt(x.r.date)+' · '+SLOTS[x.r.slot]+' · '+esc(x.r.teacher)+'</span></div></li>';
+  }).join("");
+  var chips=['<button type="button" class="chip" data-a="filter" data-v="ALL" aria-pressed="'+(S.filter==="ALL")+'">All</button>'].concat(SUBJECTS.map(function(s){return '<button type="button" class="chip" data-a="filter" data-v="'+s.code+'" aria-pressed="'+(S.filter===s.code)+'">'+s.code+'</button>';})).join("");
+  return '<div class="pagehead"><div><h1>My attendance</h1><p>'+esc(st.name)+' · <span class="mono">'+esc(st.roll)+'</span></p></div>'+
+    '<span class="lock">'+ICON.lock+'View only. Your teachers update this.</span></div>'+
+  '<div class="card" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">'+ring(o.pct,true)+
+    '<div style="min-width:0"><span class="eyebrow">Overall attendance</span><h2 style="font-size:24px;margin:4px 0">'+(o.pct==null?"No lectures yet":o.present+" of "+o.held+" lectures")+'</h2><p class="muted">Across DSA, ETC, DE, AEC and M3. The minimum is 75%.</p></div></div>'+
+  alertHtml+
+  '<div class="grid g-cards">'+cards+'</div>'+
+  '<div class="card"><div class="cardhead"><h2>Lecture log</h2><div class="chips">'+chips+'</div></div>'+
+    (items?'<ul class="timeline">'+items+'</ul>':'<p class="muted">No lectures to show.</p>')+'</div>';
+}
+
+/* ---------- guest ---------- */
+function viewGuest(){
+  var deps=[["Computer Science & Engineering","DSA and software fundamentals, data and systems."],["Electronics & Communication","ETC and Digital Electronics labs."],["Mechanical Engineering","Design, thermal and manufacturing."],["Civil Engineering","Structures, surveying and materials."],["Management Studies","Business communication and analytics."]];
+  var cur=SUBJECTS.map(function(s){return '<tr><td><span class="tag">'+s.code+'</span></td><td>'+esc(s.name)+'</td></tr>';}).join("");
+  return '<div class="pagehead"><div><span class="eyebrow">Public portal</span><h1>Welcome to Aravali College of Engineering and Management</h1><p>A guest view. No student records are shown here.</p></div></div>'+
+  '<div class="stats"><div class="card"><span class="eyebrow">Departments</span><b>5</b></div><div class="card"><span class="eyebrow">Subjects this term</span><b>'+SUBJECTS.length+'</b></div><div class="card"><span class="eyebrow">Attendance rule</span><b>75%</b></div><div class="card"><span class="eyebrow">Daily lecture slots</span><b>'+SLOTS.length+'</b></div></div>'+
+  '<div class="card"><h2 style="margin-bottom:12px">Departments</h2><div class="deps">'+deps.map(function(d){return '<div class="card" style="background:var(--bg)"><b>'+d[0]+'</b><span class="muted">'+d[1]+'</span></div>';}).join("")+'</div></div>'+
+  '<div class="card"><h2 style="margin-bottom:12px">Subjects tracked in this system</h2><div class="tablewrap"><table style="min-width:300px"><tbody>'+cur+'</tbody></table></div>'+
+  '<p class="notice" style="margin-top:10px">Demo content. Department blurbs are placeholders for the college to replace.</p></div>';
+}
+
+/* ---------- render ---------- */
+function render(){
+  var app=document.getElementById("app");
+  app.innerHTML=S.user?viewShell():viewLogin();
+}
+function go(role,id){
+  S.user={role:role,id:id};S.menuOpen=false;S.confirm=null;S.err="";
+  S.view=role==="teacher"?"mark":role==="student"?"me":"portal";
+  S.sel={subject:null,lecture:null,draftKey:"",draft:null};
+  render();window.scrollTo(0,0);
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-a]");if(!b)return;
+  var a=b.dataset.a,v=b.dataset.v,id=b.dataset.id;
+  if(a==="role"){S.role=v;S.err="";render();}
+  else if(a==="fill"){var f=S.role==="student"?["S101","student123"]:["T01","teacher123"];document.getElementById("uid").value=f[0];document.getElementById("pw").value=f[1];}
+  else if(a==="guest"){go("guest","guest");}
+  else if(a==="menu"){S.menuOpen=!S.menuOpen;render();}
+  else if(a==="nav"){S.view=v;S.menuOpen=false;S.confirm=null;render();}
+  else if(a==="signout"){S.user=null;S.err="";render();window.scrollTo(0,0);}
+  else if(a==="toggle"){S.sel.draft.marks[id]=!S.sel.draft.marks[id];render();}
+  else if(a==="allp"){DB.students.forEach(function(s){S.sel.draft.marks[s.id]=true;});render();}
+  else if(a==="allabs"){DB.students.forEach(function(s){S.sel.draft.marks[s.id]=false;});render();}
+  else if(a==="open"){S.sel.lecture=parseInt(b.dataset.n,10);S.sel.draft=null;S.confirm=null;render();window.scrollTo(0,0);}
+  else if(a==="save"){saveLecture();}
+  else if(a==="delask"){S.confirm="dellec";render();}
+  else if(a==="delno"||a==="rmno"){S.confirm=null;render();}
+  else if(a==="delok"){
+    var recs=DB.records[S.sel.subject];recs.pop();save();S.confirm=null;S.sel.lecture=null;S.sel.draft=null;render();toast("Lecture deleted");
+  }
+  else if(a==="rmask"){S.confirm="rm:"+id;render();}
+  else if(a==="rmok"){
+    DB.students=DB.students.filter(function(s){return s.id!==id;});
+    SUBJECTS.forEach(function(s){(DB.records[s.code]||[]).forEach(function(r){delete r.marks[id];});});
+    save();S.confirm=null;S.sel.draft=null;render();toast("Student removed");
+  }
+  else if(a==="filter"){S.filter=v;render();}
+});
+function saveLecture(){
+  var t=currentUser(),dr=S.sel.draft,code=S.sel.subject,recs=DB.records[code],n=S.sel.lecture;
+  if(!dr.date){toast("Choose a date first");return;}
+  var rec={lecture:n,date:dr.date,slot:dr.slot,teacher:t.name,teacherId:t.id,ts:new Date().toISOString(),marks:JSON.parse(JSON.stringify(dr.marks))};
+  var i=recs.findIndex(function(r){return r.lecture===n;});
+  if(i>-1)recs[i]=rec;else recs.push(rec);
+  save();
+  var p=DB.students.filter(function(s){return rec.marks[s.id];}).length;
+  S.sel.draft=null;
+  if(i<0)S.sel.lecture=null;
+  render();toast(code+" Lecture "+n+" saved · "+p+" of "+DB.students.length+" present");
+}
+document.addEventListener("change",function(e){
+  var el=e.target,f=el.dataset&&el.dataset.f;if(!f)return;
+  if(f==="subject"){S.sel.subject=el.value;S.sel.lecture=null;S.sel.draft=null;S.confirm=null;render();}
+  else if(f==="lecture"){S.sel.lecture=parseInt(el.value,10);S.sel.draft=null;S.confirm=null;render();}
+  else if(f==="date"){S.sel.draft.date=el.value;}
+  else if(f==="slot"){S.sel.draft.slot=parseInt(el.value,10);}
+  else if(f==="sname"||f==="sroll"){
+    var s=DB.students.filter(function(x){return x.id===el.dataset.id;})[0];
+    var val=el.value.trim();
+    if(!s)return;
+    if(!val){el.value=f==="sname"?s.name:s.roll;toast("This field cannot be empty");return;}
+    if(f==="sname")s.name=val;else s.roll=val;
+    save();toast("Saved "+s.name);
+  }
+});
+document.addEventListener("submit",function(e){
+  e.preventDefault();
+  var f=e.target;
+  if(f.id==="loginform"){
+    var id=document.getElementById("uid").value.trim().toUpperCase(),pw=document.getElementById("pw").value;
+    var list=S.role==="student"?DB.students:DB.teachers;
+    var u=list.filter(function(x){return x.id===id&&x.pass===pw;})[0];
+    if(!u){S.err="ID or password is incorrect. Check the role above and try again.";render();document.getElementById("uid").value=id;return;}
+    go(S.role,u.id);
+  }else if(f.id==="addform"){
+    var name=document.getElementById("a-name").value.trim(),roll=document.getElementById("a-roll").value.trim();
+    if(!name||!roll)return;
+    var max=100;DB.students.forEach(function(s){var n=parseInt(s.id.slice(1),10);if(n>max)max=n;});
+    DB.students.push({id:"S"+(max+1),roll:roll,name:name,pass:"student123"});
+    save();S.sel.draft=null;render();toast(name+" added");
+  }
+});
+render();
+})();
+</script>
